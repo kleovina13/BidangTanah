@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SIDODADI LAND GIS | Sistem Informasi Pertanahan</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <!-- Leaflet Draw -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    >
+
+    <!-- CSS Utama -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- =========================================================
+         INLINE CSS TAMBAHAN UNTUK HERO BARU
+    ========================================================== -->
+    <style>
+        /* ===== HERO BARU — KAYA INFO + MINI MAP ===== */
+        .hero {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1.15fr .85fr;
+            gap: 50px;
+            align-items: center;
+            padding: 45px 45px 50px;
+            border-radius: 26px;
+            overflow: hidden;
+            background: linear-gradient(145deg, #071a29 0%, #04121e 100%);
+            border: 1px solid rgba(16,185,129,.18);
+            box-shadow:
+                0 30px 80px rgba(0,0,0,.35),
+                0 0 0 1px rgba(16,185,129,.05) inset;
+            isolation: isolate;
+        }
+
+        /* Background decorations */
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(16,185,129,.22), transparent 42%),
+                radial-gradient(circle at 88% 82%, rgba(14,165,233,.16), transparent 45%);
+            pointer-events: none;
+        }
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+            background-size: 52px 52px;
+            mask-image: linear-gradient(to bottom, black 30%, transparent 95%);
+            -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent 95%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            animation: heroFadeIn .8s ease both;
+        }
+        @keyframes heroFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 1px solid rgba(52,211,153,.28);
+            background: rgba(16,185,129,.08);
+            color: #6ee7b7;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.6px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .hero-badge i { font-size: 11px; }
+
+        .hero h2 {
+            font-family: "Inter", sans-serif;
+            font-size: clamp(32px, 3.8vw, 50px);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -1.6px;
+            color: #f8fafc;
+            margin: 0 0 18px;
+        }
+        .hero h2 span {
+            display: block;
+            background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #6ee7b7 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: heroGradient 6s ease infinite;
+        }
+        @keyframes heroGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+
+        .hero p {
+            max-width: 580px;
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.85;
+            margin: 0 0 26px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        .hero .primary-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 13px 22px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .3s cubic-bezier(.4,0,.2,1);
+            border: none;
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: white;
+            box-shadow: 0 12px 30px rgba(16,185,129,.28);
+        }
+        .hero .primary-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 40px rgba(16,185,129,.45);
+        }
+        .hero .ghost-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 13px 22px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .3s cubic-bezier(.4,0,.2,1);
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color: #cbd5e1;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .hero .ghost-btn:hover {
+            background: rgba(255,255,255,.08);
+            color: white;
+            border-color: rgba(52,211,153,.35);
+            transform: translateY(-3px);
+        }
+
+        /* Stats inline di bawah tombol */
+        .hero-stats {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,.07);
+            background: rgba(255,255,255,.025);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            flex-wrap: wrap;
+            max-width: 580px;
+        }
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+        .hero-stat-icon {
+            width: 38px; height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .hero-stat-icon.green  { background: rgba(16,185,129,.14); color: #34d399; }
+        .hero-stat-icon.blue   { background: rgba(56,189,248,.14); color: #38bdf8; }
+        .hero-stat-icon.orange { background: rgba(245,158,11,.14); color: #fbbf24; }
+
+        .hero-stat strong {
+            display: block;
+            font-size: 17px;
+            font-weight: 800;
+            color: #f8fafc;
+            letter-spacing: -.5px;
+            line-height: 1.1;
+        }
+        .hero-stat span {
+            display: block;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .hero-stat-divider {
+            width: 1px;
+            height: 30px;
+            background: rgba(255,255,255,.08);
+        }
+
+        /* ===== MINI MAP KANAN ===== */
+        .hero-decoration {
+            position: relative;
+            z-index: 2;
+            height: 360px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: heroFadeIn .9s ease .15s both;
+        }
+
+        .mini-map {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 290px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: linear-gradient(145deg, #0f2a3a, #081a26);
+            border: 1px solid rgba(52,211,153,.22);
+            box-shadow:
+                0 30px 70px rgba(0,0,0,.5),
+                0 0 60px rgba(16,185,129,.12);
+            transform: perspective(1200px) rotateY(-5deg) rotateX(3deg);
+            transition: transform .6s ease;
+        }
+        .mini-map:hover {
+            transform: perspective(1200px) rotateY(0) rotateX(0) translateY(-6px);
+        }
+
+        .mini-map-grid {
+            position: absolute;
+            inset: 0;
+            opacity: .25;
+            background-image:
+                linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        .mini-map-road {
+            position: absolute;
+            width: 130%;
+            height: 14px;
+            left: -15%; top: 48%;
+            background: rgba(255,255,255,.10);
+            transform: rotate(-25deg);
+            border-radius: 3px;
+        }
+        .mini-map-road::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; top: 6px;
+            height: 2px;
+            background: repeating-linear-gradient(90deg,
+                rgba(255,255,255,.35) 0, rgba(255,255,255,.35) 8px,
+                transparent 8px, transparent 16px
+            );
+        }
+        .mini-map-road-2 {
+            position: absolute;
+            width: 70%;
+            height: 8px;
+            left: 25%; top: 78%;
+            background: rgba(255,255,255,.07);
+            transform: rotate(10deg);
+            border-radius: 2px;
+        }
+
+        .mini-parcel {
+            position: absolute;
+            border: 2px solid rgba(52,211,153,.75);
+            background: rgba(16,185,129,.18);
+            border-radius: 4px;
+            transition: all .3s ease;
+            cursor: pointer;
+        }
+        .mini-parcel:hover {
+            background: rgba(16,185,129,.4);
+            transform: scale(1.06);
+            box-shadow: 0 0 20px rgba(16,185,129,.5);
+        }
+        .mini-parcel.sesuai {
+            border-color: rgba(52,211,153,.9);
+            background: rgba(16,185,129,.24);
+        }
+        .mini-parcel.sebagian {
+            border-color: rgba(56,189,248,.8);
+            background: rgba(56,189,248,.20);
+        }
+        .mp-1 { width: 90px;  height: 66px;  left: 28px;  top: 38px;  transform: rotate(-8deg); }
+        .mp-2 { width: 100px; height: 76px;  left: 135px; top: 36px;  transform: rotate(6deg); }
+        .mp-3 { width: 90px;  height: 68px;  left: 56px;  top: 125px; transform: rotate(3deg); }
+        .mp-4 { width: 96px;  height: 64px;  left: 168px; top: 132px; transform: rotate(-8deg); }
+        .mp-5 { width: 72px;  height: 56px;  left: 280px; top: 72px;  transform: rotate(8deg); }
+
+        .mini-pin {
+            position: absolute;
+            left: 48%; top: 44%;
+            width: 42px; height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50% 50% 50% 0;
+            background: linear-gradient(135deg, #10b981, #047857);
+            transform: rotate(-45deg);
+            box-shadow:
+                0 0 0 8px rgba(16,185,129,.16),
+                0 0 30px rgba(16,185,129,.5);
+            animation: miniPinPulse 2.5s ease-in-out infinite;
+            z-index: 5;
+        }
+        @keyframes miniPinPulse {
+            0%, 100% { box-shadow: 0 0 0 8px rgba(16,185,129,.16), 0 0 30px rgba(16,185,129,.5); }
+            50%      { box-shadow: 0 0 0 14px rgba(16,185,129,.06), 0 0 42px rgba(16,185,129,.7); }
+        }
+        .mini-pin i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 15px;
+        }
+
+        .mini-map-label {
+            position: absolute;
+            left: 12px; bottom: 12px;
+            padding: 7px 11px;
+            border-radius: 9px;
+            background: rgba(0,0,0,.55);
+            border: 1px solid rgba(255,255,255,.09);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #cbd5e1;
+            font-size: 9.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 6;
+        }
+        .mini-map-label i { color: #34d399; font-size: 10px; }
+
+        .mini-map-compass {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 30px; height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0,0,0,.5);
+            border: 1px solid rgba(255,255,255,.1);
+            color: #cbd5e1;
+            font-size: 10px;
+            font-weight: 800;
+            z-index: 6;
+        }
+
+        .mini-map-legend {
+            position: absolute;
+            top: 12px; left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 7px 9px;
+            border-radius: 9px;
+            background: rgba(0,0,0,.5);
+            border: 1px solid rgba(255,255,255,.09);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 6;
+        }
+        .leg-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 8px;
+            font-weight: 700;
+            color: #cbd5e1;
+        }
+        .leg-dot {
+            width: 8px; height: 8px;
+            border-radius: 2px;
+        }
+        .leg-dot.green  { background: #34d399; }
+        .leg-dot.blue   { background: #38bdf8; }
+        .leg-dot.red    { background: #f87171; }
+
+        /* Floating badges */
+        .float-badge {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 13px;
+            background: rgba(13,26,43,.92);
+            border: 1px solid rgba(52,211,153,.25);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 15px 35px rgba(0,0,0,.4);
+            z-index: 10;
+            animation: floatY 4s ease-in-out infinite;
+        }
+        .float-badge-1 {
+            top: 0; left: -15px;
+            animation-delay: 0s;
+        }
+        .float-badge-2 {
+            bottom: 10px; right: -15px;
+            animation-delay: 2s;
+        }
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-8px); }
+        }
+        .float-badge i {
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(16,185,129,.15);
+            color: #34d399;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .float-badge-2 i {
+            background: rgba(56,189,248,.15);
+            color: #38bdf8;
+        }
+        .float-badge strong {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: #f8fafc;
+            line-height: 1.1;
+        }
+        .float-badge span {
+            display: block;
+            font-size: 9px;
+            color: #94a3b8;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        /* ===== ORB (override agar tetap ada) ===== */
+        .hero .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .hero .orb-one {
+            width: 260px; height: 260px;
+            background: rgba(16,185,129,.14);
+            top: -100px; left: -80px;
+        }
+        .hero .orb-two {
+            width: 300px; height: 300px;
+            background: rgba(14,165,233,.10);
+            bottom: -140px; right: -80px;
+        }
+
+        /* ===== RESPONSIVE HERO ===== */
+        @media (max-width: 1100px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 40px 32px 45px;
+            }
+            .hero-content { text-align: center; }
+            .hero p { margin-left: auto; margin-right: auto; }
+            .hero-actions { justify-content: center; }
+            .hero-stats { margin-left: auto; margin-right: auto; }
+            .hero-decoration { height: 340px; }
+            .float-badge-1 { left: 0; }
+            .float-badge-2 { right: 0; }
+        }
+
+        @media (max-width: 600px) {
+            .hero { padding: 30px 20px 35px; }
+            .hero h2 { font-size: 28px; letter-spacing: -1.1px; }
+            .hero p { font-size: 13px; }
+            .hero-actions { flex-direction: column; width: 100%; }
+            .hero-actions button { justify-content: center; }
+
+            .hero-stats {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+                padding: 16px;
+            }
+            .hero-stat-divider {
+                width: 100%;
+                height: 1px;
+            }
+
+            .hero-decoration { height: 280px; }
+            .mini-map {
+                height: 230px;
+                transform: none;
+            }
+            .mini-parcel.mp-5 { display: none; }
+            .float-badge {
+                padding: 8px 11px;
+            }
+            .float-badge i { width: 26px; height: 26px; font-size: 12px; }
+            .float-badge strong { font-size: 10px; }
+            .float-badge span { font-size: 8.5px; }
+            .float-badge-1 { top: -8px; left: 0; }
+            .float-badge-2 { bottom: -8px; right: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+
+        <div class="brand-logo">
+            <i class="fa-solid fa-map-location-dot"></i>
+        </div>
+
+        <div class="brand-text">
+            <strong>SIDODADI</strong>
+            <span>LAND GIS</span>
+        </div>
+
+        <button
+            class="close-sidebar"
+            id="closeSidebar"
+            title="Tutup menu"
+        >
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+    </div>
+
+
+    <div class="sidebar-content">
+
+        <!-- Navigation -->
+
+        <div class="menu-label">
+            NAVIGASI
+        </div>
+
+        <a href="index.html" class="nav-link">
+            <i class="fa-solid fa-house"></i>
+            <span>Beranda</span>
+        </a>
+
+        <a href="#dashboard" class="nav-link active">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="#map-section" class="nav-link">
+            <i class="fa-solid fa-map"></i>
+            <span>Peta Bidang</span>
+        </a>
+
+        <a href="#table-section" class="nav-link">
+            <i class="fa-solid fa-table"></i>
+            <span>Data Atribut</span>
+        </a>
+
+
+        <!-- Layer -->
+
+        <div class="menu-label">
+            LAYER
+        </div>
+
+        <div class="layer-box">
+
+            <label class="layer-item">
+
+                <span class="layer-left">
+                    <span class="layer-symbol parcel-symbol"></span>
+                    <span>Bidang Tanah</span>
+                </span>
+
+                <input
+                    type="checkbox"
+                    id="parcelToggle"
+                    checked
+                >
+
+                <span class="switch"></span>
+
+            </label>
+
+        </div>
+
+
+        <!-- Tools -->
+
+        <div class="menu-label">
+            TOOLS
+        </div>
+
+        <button class="side-action" id="fitBtn">
+            <i class="fa-solid fa-expand"></i>
+            <span>Zoom Semua Bidang</span>
+        </button>
+
+        <button class="side-action" id="locateBtn">
+            <i class="fa-solid fa-location-crosshairs"></i>
+            <span>Lokasi Saya</span>
+        </button>
+
+        <button class="side-action" id="homeBtn">
+            <i class="fa-solid fa-house"></i>
+            <span>Tampilan Awal</span>
+        </button>
+
+        <button class="side-action" id="fullscreenBtn">
+            <i class="fa-solid fa-expand"></i>
+            <span>Layar Penuh</span>
+        </button>
+
+        <button class="side-action" id="printBtn">
+            <i class="fa-solid fa-print"></i>
+            <span>Cetak Peta</span>
+        </button>
+
+
+        <!-- Data -->
+
+        <div class="menu-label">
+            DATA
+        </div>
+
+        <button class="side-action" id="uploadBtn">
+            <i class="fa-solid fa-file-import"></i>
+            <span>Import GeoJSON</span>
+        </button>
+
+        <button class="side-action" id="exportBtn">
+            <i class="fa-solid fa-file-export"></i>
+            <span>Export GeoJSON</span>
+        </button>
+
+        <button class="side-action" id="tableExportBtn">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>Export CSV</span>
+        </button>
+
+        <!-- Tombol Grafik di Sidebar -->
+        <button class="side-action" id="chartBtnSide">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Lihat Grafik</span>
+        </button>
+
+        <input
+            type="file"
+            id="geojsonInput"
+            accept=".geojson,.json"
+            hidden
+        >
+
+
+        <!-- Appearance -->
+
+        <div class="menu-label">
+            TAMPILAN
+        </div>
+
+        <button class="side-action" id="darkBtn">
+            <i class="fa-solid fa-moon"></i>
+            <span>Mode Gelap</span>
+        </button>
+
+
+        <div class="sidebar-footer">
+
+            <div class="status-dot"></div>
+
+            <div>
+                <strong>GIS System Online</strong>
+                <span>Desa Sidodadi</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</aside>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="main">
+
+    <!-- TOPBAR -->
+
+    <header class="topbar">
+
+        <button
+            class="menu-btn"
+            id="menuBtn"
+            title="Menu"
+        >
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="topbar-title">
+
+            <span class="eyebrow">
+                SISTEM INFORMASI GEOGRAFIS
+            </span>
+
+            <h1>
+                SIDODADI LAND GIS
+            </h1>
+
+        </div>
+
+
+        <div class="topbar-actions">
+
+            <!-- Tombol Kembali ke Beranda -->
+            <a
+                href="index.html"
+                class="icon-btn"
+                title="Kembali ke Beranda"
+            >
+                <i class="fa-solid fa-house"></i>
+            </a>
+
+            <button
+                class="icon-btn"
+                id="themeBtn"
+                title="Mode gelap"
+            >
+                <i class="fa-solid fa-moon"></i>
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
+
+    <section class="dashboard-section" id="dashboard">
+
+        <!-- HERO BARU -->
+        <div class="hero">
+
+            <!-- ORB -->
+            <div class="orb orb-one"></div>
+            <div class="orb orb-two"></div>
+
+            <!-- KONTEN KIRI -->
+            <div class="hero-content">
+
+                <div class="hero-badge">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    WEBGIS PERTANAHAN · PTSL 2024
+                </div>
+
+                <h2>
+                    Sistem Informasi<br>
+                    <span>Pemetaan Bidang Tanah</span>
+                </h2>
+
+                <p>
+                    Platform WebGIS untuk memvisualisasikan,
+                    mencari, memfilter, dan menganalisis data
+                    bidang tanah Desa Sidodadi secara interaktif.
+                </p>
+
+                <div class="hero-actions">
+
+                    <button
+                        class="primary-btn"
+                        id="heroMapBtn"
+                    >
+                        <i class="fa-solid fa-map"></i>
+                        Buka Peta
+                    </button>
+
+                    <a
+                        href="#table-section"
+                        class="ghost-btn"
+                    >
+                        <i class="fa-solid fa-table"></i>
+                        Lihat Data
+                    </a>
+
+                </div>
+
+                <!-- Stats Inline -->
+                <div class="hero-stats">
+
+                    <div class="hero-stat">
+                        <div class="hero-stat-icon green">
+                            <i class="fa-solid fa-draw-polygon"></i>
+                        </div>
+                        <div>
+                            <strong id="totalFields">0</strong>
+                            <span>Bidang Tanah</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-stat-divider"></div>
+
+                    <div class="hero-stat">
+                        <div class="hero-stat-icon blue">
+                            <i class="fa-solid fa-ruler-combined"></i>
+                        </div>
+                        <div>
+                            <strong id="totalArea">0 m²</strong>
+                            <span>Total Luas</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-stat-divider"></div>
+
+                    <div class="hero-stat">
+                        <div class="hero-stat-icon orange">
+                            <i class="fa-solid fa-list"></i>
+                        </div>
+                        <div>
+                            <strong id="totalAttributes">0</strong>
+                            <span>Atribut</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- VISUAL KANAN: MINI MAP -->
+            <div class="hero-decoration">
+
+                <div class="mini-map">
+
+                    <div class="mini-map-grid"></div>
+
+                    <div class="mini-map-road"></div>
+                    <div class="mini-map-road-2"></div>
+
+                    <div class="mini-parcel mp-1 sesuai"></div>
+                    <div class="mini-parcel mp-2"></div>
+                    <div class="mini-parcel mp-3"></div>
+                    <div class="mini-parcel mp-4"></div>
+                    <div class="mini-parcel mp-5 sebagian"></div>
+
+                    <div class="mini-pin">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+
+                    <div class="mini-map-label">
+                        <i class="fa-solid fa-location-dot"></i>
+                        Desa Sidodadi
+                    </div>
+
+                    <div class="mini-map-compass">N</div>
+
+                    <div class="mini-map-legend">
+                        <span class="leg-item"><span class="leg-dot green"></span>Sesuai</span>
+                        <span class="leg-item"><span class="leg-dot blue"></span>Sebagian</span>
+                        <span class="leg-item"><span class="leg-dot red"></span>Tidak</span>
+                    </div>
+
+                </div>
+
+                <!-- Floating badges -->
+                <div class="float-badge float-badge-1">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    <div>
+                        <strong>RTK GNSS</strong>
+                        <span>± 0.02 m</span>
+                    </div>
+                </div>
+
+                <div class="float-badge float-badge-2">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                        <strong>Live Data</strong>
+                        <span>Terupdate</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STAT CARDS BAWAH (TETAP ADA) -->
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <div class="stat-icon blue">
+                    <i class="fa-solid fa-draw-polygon"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Total Bidang</span>
+
+                    <strong id="totalFields2">
+                        0
+                    </strong>
+
+                    <small>
+                        bidang terdata
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon green">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Total Luas</span>
+
+                    <strong id="totalArea2">
+                        0 m²
+                    </strong>
+
+                    <small>
+                        luas bidang
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon orange">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Atribut</span>
+
+                    <strong id="totalAttributes2">
+                        0
+                    </strong>
+
+                    <small>
+                        kolom informasi
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon purple">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Status Layer</span>
+
+                    <strong id="layerStatus">
+                        Aktif
+                    </strong>
+
+                    <small>
+                        sistem pemetaan
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOMBOL GRAFIK DI DASHBOARD -->
+        <div class="chart-trigger-wrapper">
+            <button class="chart-trigger-btn" id="openChartBtn">
+                <i class="fa-solid fa-chart-line"></i>
+                Buka Dashboard Analisis Bidang Tanah
+            </button>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MAP SECTION
+    ====================================================== -->
+
+    <section class="content-section" id="map-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-label">
+                    PEMETAAN
+                </span>
+
+                <h2>
+                    Peta Interaktif Bidang Tanah
+                </h2>
+
+                <p>
+                    Klik bidang untuk melihat informasi atribut.
+                </p>
+
+            </div>
+
+            <div class="map-counter">
+
+                <i class="fa-solid fa-layer-group"></i>
+
+                <span id="featureCount">
+                    0 bidang
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="map-layout">
+
+            <!-- FILTER PANEL -->
+
+            <aside class="filter-panel">
+
+                <div class="filter-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            FILTER
+                        </span>
+
+                        <h3>
+                            Pencarian Data
+                        </h3>
+
+                    </div>
+
+                    <button
+                        id="clearFilters"
+                        class="mini-btn"
+                        title="Reset filter"
+                    >
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+
+                </div>
+
+
+                <!-- SEARCH -->
+
+                <div class="search-box">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Cari data bidang..."
+                    >
+
+                    <button
+                        id="clearSearch"
+                        title="Hapus pencarian"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+
+                </div>
+
+
+                <!-- DYNAMIC FILTER -->
+
+                <div
+                    class="dynamic-filters"
+                    id="dynamicFilters"
+                >
+
+                    <div class="filter-loading">
+
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+
+                        <span>
+                            Menyiapkan filter...
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="filter-apply-btn"
+                    id="applyFilters"
+                >
+
+                    <i class="fa-solid fa-filter"></i>
+
+                    Terapkan Filter
+
+                </button>
+
+
+                <button
+                    class="filter-reset-btn"
+                    id="resetFilters"
+                >
+
+                    <i class="fa-solid fa-broom"></i>
+
+                    Reset Semua Filter
+
+                </button>
+
+
+                <!-- BASEMAP -->
+
+                <div class="control-group">
+
+                    <label>
+                        <i class="fa-solid fa-map"></i>
+                        Basemap
+                    </label>
+
+                    <select id="basemapSelect">
+
+                        <option value="osm">
+                            OpenStreetMap
+                        </option>
+
+                        <option value="satellite">
+                            Satellite
+                        </option>
+
+                        <option value="topo">
+                            Topographic
+                        </option>
+
+                        <option value="dark">
+                            Dark Map
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- MEASURE -->
+
+                <div class="measure-box">
+
+                    <div class="measure-title">
+
+                        <i class="fa-solid fa-ruler"></i>
+
+                        <span>
+                            Pengukuran
+                        </span>
+
+                    </div>
+
+                    <p>
+                        Gunakan toolbar di peta untuk
+                        mengukur luas atau jarak.
+                    </p>
+
+                    <button
+                        class="clear-measure"
+                        id="clearMeasureBtn"
+                    >
+                        <i class="fa-solid fa-trash"></i>
+                        Hapus Pengukuran
+                    </button>
+
+                </div>
+
+            </aside>
+
+
+            <!-- MAP -->
+
+            <div class="map-wrapper">
+
+                <div id="map"></div>
+
+                <div class="map-overlay-top">
+
+                    <div class="map-status">
+
+                        <span class="live-dot"></span>
+
+                        <span>
+                            LIVE MAP
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="cursor-coords"
+                        id="cursorCoords"
+                    >
+                        Koordinat: -
+                    </div>
+
+                </div>
+
+                <div class="map-overlay-bottom">
+
+                    <div class="map-info-chip">
+
+                        <i class="fa-solid fa-circle-info"></i>
+
+                        <span>
+                            Klik bidang untuk detail
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TABLE
+    ====================================================== -->
+
+    <section
+        class="content-section"
+        id="table-section"
+    >
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-label">
+                    DATABASE
+                </span>
+
+                <h2>
+                    Data Atribut Bidang Tanah
+                </h2>
+
+                <p>
+                    Informasi atribut dari GeoJSON yang dimuat.
+                </p>
+
+            </div>
+
+            <div class="table-summary" id="tableSummary">
+                0 data
+            </div>
+
+        </div>
+
+
+        <div class="table-card">
+
+            <div class="table-toolbar">
+
+                <div class="table-title">
+
+                    <i class="fa-solid fa-database"></i>
+
+                    <span>
+                        Daftar Bidang Tanah
+                    </span>
+
+                </div>
+
+                <button
+                    class="outline-btn"
+                    id="tableExportBtn2"
+                >
+
+                    <i class="fa-solid fa-download"></i>
+
+                    Export CSV
+
+                </button>
+
+            </div>
+
+
+            <div class="table-scroll">
+
+                <table>
+
+                    <thead id="fieldTableHead">
+                    </thead>
+
+                    <tbody id="fieldTable">
+
+                        <tr>
+
+                            <td
+                                colspan="5"
+                                class="empty-cell"
+                            >
+
+                                <i class="fa-solid fa-database"></i>
+
+                                <span>
+                                    Data belum dimuat.
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ABOUT
+    ====================================================== -->
+
+    <section class="about-section">
+
+        <div class="about-card">
+
+            <div class="about-icon">
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+            </div>
+
+            <div>
+
+                <span class="section-label">
+                    TENTANG SISTEM
+                </span>
+
+                <h2>
+                    SIDODADI LAND GIS
+                </h2>
+
+                <p>
+                    Sistem Informasi Geografis berbasis web
+                    yang digunakan untuk menampilkan data
+                    bidang tanah secara interaktif serta
+                    mendukung pencarian, penyaringan,
+                    identifikasi dan pengelolaan data spasial.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <div>
+
+            <strong>
+                SIDODADI LAND GIS
+            </strong>
+
+            <span>
+                Sistem Informasi Pertanahan
+            </span>
+
+        </div>
+
+        <div>
+
+            © <span id="year"></span>
+            Desa Sidodadi · Pesawaran · Lampung
+
+        </div>
+
+    </footer>
+
+</main>
+
+
+<!-- =========================================================
+     MODAL: DASHBOARD ANALISIS MULTI-CHART
+========================================================= -->
+
+<div class="chart-modal" id="chartModal">
+
+    <div class="chart-modal-overlay" id="chartModalOverlay"></div>
+
+    <div class="chart-modal-content">
+
+        <!-- Header -->
+        <div class="chart-modal-header">
+
+            <div>
+
+                <span class="section-label">
+                    DASHBOARD ANALISIS
+                </span>
+
+                <h2>
+                    Statistik Bidang Tanah Desa Sidodadi
+                </h2>
+
+                <p>
+                    Ringkasan visual hasil digitasi hak milik
+                    dan pengukuran RTK GNSS.
+                </p>
+
+            </div>
+
+            <button
+                class="chart-modal-close"
+                id="closeChartBtn"
+                title="Tutup"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+
+        <!-- TAB NAVIGATION -->
+        <div class="chart-tabs">
+
+            <button class="chart-tab active" data-tab="kesesuaian">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Kesesuaian</span>
+            </button>
+
+            <button class="chart-tab" data-tab="jenis-hak">
+                <i class="fa-solid fa-file-contract"></i>
+                <span>Jenis Hak</span>
+            </button>
+
+            <button class="chart-tab" data-tab="luas">
+                <i class="fa-solid fa-ruler-combined"></i>
+                <span>Distribusi Luas</span>
+            </button>
+
+            <button class="chart-tab" data-tab="overlap">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Overlap</span>
+            </button>
+
+            <button class="chart-tab" data-tab="persentase">
+                <i class="fa-solid fa-percent"></i>
+                <span>Persentase</span>
+            </button>
+
+            <button class="chart-tab" data-tab="top-pemilik">
+                <i class="fa-solid fa-crown"></i>
+                <span>Top Pemilik</span>
+            </button>
+
+        </div>
+
+
+        <!-- KPI CARDS -->
+        <div class="chart-kpi-grid" id="chartKpiGrid">
+            <!-- Diisi oleh JavaScript -->
+        </div>
+
+
+        <!-- Body -->
+        <div class="chart-modal-body">
+
+            <!-- Chart Canvas -->
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+
+            <!-- Legend -->
+            <div class="chart-legend" id="chartLegend">
+                <!-- Diisi oleh JavaScript -->
+            </div>
+
+        </div>
+
+
+        <!-- Footer -->
+        <div class="chart-modal-footer">
+
+            <div class="chart-total" id="chartTotal">
+                Total: <strong>0</strong> bidang
+            </div>
+
+            <div class="chart-modal-actions">
+
+                <button
+                    class="chart-modal-btn secondary"
+                    id="exportChartCsvBtn"
+                >
+                    <i class="fa-solid fa-file-csv"></i>
+                    CSV
+                </button>
+
+                <button
+                    class="chart-modal-btn"
+                    id="exportChartBtn"
+                >
+                    <i class="fa-solid fa-image"></i>
+                    Simpan PNG
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div
+    class="toast"
+    id="toast"
+>
+
+    <div class="toast-icon">
+
+        <i class="fa-solid fa-circle-info"></i>
+
+    </div>
+
+    <div class="toast-content">
+
+        <strong>
+            Informasi
+        </strong>
+
+        <span id="toastMessage">
+            Sistem siap digunakan.
+        </span>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     LIBRARIES
+========================================================= -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+<!-- Chart.js untuk grafik -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+
+<!-- APP -->
+<script src="js/app.js"></script>
+
+</body>
+</html>
